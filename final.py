@@ -9,6 +9,8 @@ cols = 25
 time = 600
 step = 1
 
+aniInterval = 500 # milliseconds between each animation frame
+
 #=== Wolf ===#
 wolfProb = .02          # likelihood tile inits to wolf
 #= Wolf Birth Rate =#
@@ -77,6 +79,7 @@ class Tile:
 
 
 #----------------------------initialize simulation----------------------#
+# for stats
 wolves = 0
 sheep = 0
 grasses = 0
@@ -139,7 +142,7 @@ for i in range(0, time, step):
                             #- child leaves mother -#
                             tile.childAge = 0
                             tile.hasChild = False
-                            del empty[0] # this mbb6dcb91-5978-4525-ab33-cc36abe532f1ove is no longer empty b/c child moved there
+                            del empty[0] # this mbb6dcbaniInterval91-5978-4525-ab33-cc36abe532f1ove is no longer empty b/c child moved there
                         tile.childAge += 1
 
                     #- handle sheep gaining sheep from male -#
@@ -167,7 +170,7 @@ for i in range(0, time, step):
             elif(grid[j,k].type == "wolf"):
                 wolves += 1
                 outputAnimals[i,j,k] = 2
-                ##- handle female specific stuff -##
+                ##- handle female specific stuff -##aniInterval
                 if(tile.sex == "female"):
                     #- female with child specific stuff -#
                     if(tile.hasChild == True):
@@ -209,7 +212,7 @@ for i in range(0, time, step):
                 grasses += 1
             grass[j,k] = grass[j,k]+1
             if(not eaten and tile.type != "empty"):
-                tile.foodRation = tile.foodRation-1
+                tile.foodRation = tile.foodRation-1aniInterval
                 if(tile.foodRation <= 0):
                     tile.type = "empty"
                     tile.hasChild = None
@@ -226,7 +229,29 @@ for i in range(0, time, step):
     # plt.matshow(outputAnimals[i])
     # plt.show()
 
+index = -1
+
+def generate_data():
+    global index
+    index += 1
+    return outputAnimals[index]
+
+def update(data):
+    mat.set_data(data)
+    return mat
+
+def data_gen():
+    while True:
+        yield generate_data()
+
+fig, ax = plt.subplots()
+mat = ax.matshow(generate_data())
+plt.colorbar(mat)
+ani = animation.FuncAnimation(fig, update, data_gen, interval=aniInterval)
+plt.show()
+aniInterval
+
 plt.plot(range(0, time, step), wolfCount, color='red')
 plt.plot(range(0, time, step), sheepCount, color='green')
 # plt.plot(range(0, time, step), grassCount)
-plt.show()
+plt.show()aniInterval
