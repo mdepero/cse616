@@ -4,15 +4,15 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
 #----------------------------set global variables-----------------------#
-rows = 25
-cols = 25
-time = 600
+rows = 40
+cols = 40
+time = 200
 step = 1
 
-aniInterval = 500 # milliseconds between each animation frame
+aniInterval = 300       # milliseconds between each animation frame
 
 #=== Wolf ===#
-wolfProb = .02          # likelihood tile inits to wolf
+wolfProb = .03          # likelihood tile inits to wolf
 #= Wolf Birth Rate =#
 wolfMinInitAge = 4      # range of age for initial population
 wolfMaxInitAge = 6
@@ -21,10 +21,11 @@ wolfMinChildAge = 0     # range of age between which child leaves, initial is 0
 wolfMaxChildAge = 1
 wolfChildFood = 0       # the food ration necessary to have a child
 #= Wolf Death Rate =#
-wolfMaxFood = 10        # food gained when eating, dies at 0, initial is max
+wolfMaxFood = 12        # food gained when eating, dies at 0, initial is max
+wolfEatFood = 4         # food at which wolf needs to eat again (eat if foodRation <= wolfEatFood)
 
 #=== Sheep ===#
-sheepProb = .4          # likelihood tile inits to wolf
+sheepProb = .2          # likelihood tile inits to sheep
 #= Sheep Birth Rate =#
 sheepMinInitAge = 0     # range of age for initial population
 sheepMaxInitAge = 4
@@ -33,9 +34,9 @@ sheepMinChildAge = 0    # range of age between which child leaves, initial is 0
 sheepMaxChildAge = 2
 sheepChildFood = 0      # the food ration necessary to have a child
 #= Sheep Death Rate =#
-sheepMaxFood = 12        # food gained when eating, dies at 0, initial is max
+sheepMaxFood = 4        # food gained when eating, dies at 0, initial is max
+sheepEatFood = 3        # food at which sheep needs to eat again
 grassMatureAge = 2      # age grass is edible, 0 after eaten, initial is rand between [0, max]
-wolfEatFood = 5         # food at which wolf needs to eat again (eat if foodRation <= wolfEatFood)
 
 
 moves = [[1,0],[0,1],[-1,0],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]]
@@ -44,6 +45,8 @@ grass = np.random.randint(grassMatureAge, size=(rows, cols))
 grid = np.empty([rows, cols], dtype=object)
 
 assert wolfProb + sheepProb <= 1
+assert sheepMaxFood >= sheepEatFood
+assert wolfMaxFood >= wolfEatFood
 
 sheepCount = []
 wolfCount = []
@@ -142,7 +145,7 @@ for i in range(0, time, step):
                             #- child leaves mother -#
                             tile.childAge = 0
                             tile.hasChild = False
-                            del empty[0] # this mbb6dcbaniInterval91-5978-4525-ab33-cc36abe532f1ove is no longer empty b/c child moved there
+                            del empty[0] # this move is no longer empty b/c child moved there
                         tile.childAge += 1
 
                     #- handle sheep gaining sheep from male -#
@@ -157,7 +160,7 @@ for i in range(0, time, step):
                         moveTo(j,k,location[0],location[1])
                         tile = grid[j+location[0], k +location[1]]
                         moved = True
-                        if(grid[j+location[0],k+location[1]].foodRation < sheepMaxFood):
+                        if(grid[j+location[0],k+location[1]].foodRation < sheepEatFood):
                             grid[j+location[0],k+location[1]].foodRation = sheepMaxFood
                             eaten = True
                         grass[j+location[0],k+location[1]] = 0
@@ -170,7 +173,7 @@ for i in range(0, time, step):
             elif(grid[j,k].type == "wolf"):
                 wolves += 1
                 outputAnimals[i,j,k] = 2
-                ##- handle female specific stuff -##aniInterval
+                ##- handle female specific stuff -##
                 if(tile.sex == "female"):
                     #- female with child specific stuff -#
                     if(tile.hasChild == True):
@@ -212,7 +215,7 @@ for i in range(0, time, step):
                 grasses += 1
             grass[j,k] = grass[j,k]+1
             if(not eaten and tile.type != "empty"):
-                tile.foodRation = tile.foodRation-1aniInterval
+                tile.foodRation = tile.foodRation-1
                 if(tile.foodRation <= 0):
                     tile.type = "empty"
                     tile.hasChild = None
@@ -249,9 +252,8 @@ mat = ax.matshow(generate_data())
 plt.colorbar(mat)
 ani = animation.FuncAnimation(fig, update, data_gen, interval=aniInterval)
 plt.show()
-aniInterval
 
 plt.plot(range(0, time, step), wolfCount, color='red')
 plt.plot(range(0, time, step), sheepCount, color='green')
 # plt.plot(range(0, time, step), grassCount)
-plt.show()aniInterval
+plt.show()
