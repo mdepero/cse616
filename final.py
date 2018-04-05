@@ -6,7 +6,7 @@ import matplotlib.animation as animation
 #----------------------------set global variables-----------------------#
 rows = 40
 cols = 40
-time = 200
+time = 1000
 step = 1
 
 aniInterval = 300       # milliseconds between each animation frame
@@ -21,8 +21,8 @@ wolfMinChildAge = 0     # range of age between which child leaves, initial is 0
 wolfMaxChildAge = 1
 wolfChildFood = 0       # the food ration necessary to have a child
 #= Wolf Death Rate =#
-wolfMaxFood = 12        # food gained when eating, dies at 0, initial is max
-wolfEatFood = 4         # food at which wolf needs to eat again (eat if foodRation <= wolfEatFood)
+wolfMaxFood = 5        # food gained when eating, dies at 0, initial is max
+wolfEatFood = 2         # food at which wolf needs to eat again (eat if foodRation <= wolfEatFood)
 
 #=== Sheep ===#
 sheepProb = .2          # likelihood tile inits to sheep
