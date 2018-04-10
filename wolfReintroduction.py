@@ -279,8 +279,8 @@ def update(i):
     mat.set_array(outputAnimals[i])
     return [mat]
 
-print(wolfCount)
-print(sheepCount)
+#print(wolfCount)
+#print(sheepCount)
 
 fig, ax = plt.subplots()
 mat = ax.matshow(outputAnimals[0])
