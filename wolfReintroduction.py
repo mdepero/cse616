@@ -6,7 +6,7 @@ import matplotlib.animation as animation
 #----------------------------set global variables-----------------------#
 rows = 80
 cols = 80
-time = 50               # Amount of time to run the simulation for
+time = 100              # Amount of time to run the simulation for
 step = 1
 
 aniInterval = 50        # milliseconds between each animation frame
@@ -27,7 +27,7 @@ wolfEatFood = 2         # food at which wolf needs to eat again (eat if foodRati
 wolfContained = True    # true if wolf is currently contained in the pen
 
 #=== Sheep ===#
-sheepProb = .2          # likelihood tile inits to sheep
+sheepProb = .4          # likelihood tile inits to sheep
 sheepMinInitAge = 0     # range of age for initial population
 sheepMaxInitAge = 4
 #= Sheep Birth Rate =#
@@ -91,7 +91,7 @@ grasses = 0
 for j in range(0, rows):
     for k in range(0, cols):
         r = random.random()
-        if (r > wolfProb and j < rows * 3 / 10 and k > cols * 7 / 10):
+        if (wolves <= 200 and j < rows * 3 / 10 and k > cols * 7 / 10):
             grid[j,k] = Tile("wolf", random.randint(wolfMinInitAge, wolfMaxInitAge), wolfMaxFood)
             wolves += 1
         elif(r < sheepProb + wolfProb and (j > rows * 3 / 10 or k < cols * 7 / 10)):
@@ -247,7 +247,24 @@ for i in range(0, time, step):
                     if(tile.age > wolfMatureAge and tile.foodRation >= wolfChildFood and len(maleWolves) > 0 and tile.hasChild == False):
                         tile.hasChild = True
                         tile.childAge = 0
+                #- look for any empty tile with grass -#
+                if(tile.foodRation < wolfEatFood):
+                    for location in moves:
+                        if(j+location[0] < rows and j+location[0] >= 0 and k+location[1] < cols and k+location[1] >= 0 and j + location[0] < rows * 3 / 10 and k + location[1] > cols * 7 / 10):
+                            if(grid[j+location[0],k+location[1]].type == "sheep"):
+                                ###- grass found, move to that location -###
+                                moveTo(j,k,location[0],location[1])
+                                tile = grid[j+location[0], k +location[1]]
+                                moved = True
+                                eaten = True
+                                tile.foodRation = wolfMaxFood
+                                # grass[j+location[0],k+location[1]] = 0
+                                break
 
+                #- if no grass found, just move randomly -#
+                if(not moved and len(empty)>0 and j + empty[0][0] < rows * 3 / 10 and k + empty[0][1] > cols * 7 / 10):
+                     moveTo(j,k,empty[0][0],empty[0][1])
+                     tile = grid[j+empty[0][0], k +empty[0][1]]
             ###-handle grass-###
             if (grass[j,k] >= grassMatureAge):
                 grasses += 1
