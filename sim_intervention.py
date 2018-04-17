@@ -3,42 +3,10 @@ import random
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
-#----------------------------set global variables-----------------------#
-rows = 80
-cols = 80
-time = 100              # Amount of time to run the simulation for
-step = 1
 
-aniInterval = 50        # milliseconds between each animation frame
 
-#=== Wolf ===#
-wolfProb = .05          # likelihood tile inits to wolf
-wolfMinInitAge = 4      # range of age for initial population
-wolfMaxInitAge = 6
-#= Wolf Birth Rate =#
-wolfMatureAge = 0       # age necessary to have a child
-wolfMinChildAge = 0     # range of age between which child leaves, initial is 0
-wolfMaxChildAge = 1
-wolfChildFood = 0       # the food ration necessary to have a child
-#= Wolf Death Rate =#
-wolfMaxFood = 5         # food gained when eating, dies at 0, initial is max
-wolfEatFood = 2         # food at which wolf needs to eat again (eat if foodRation <= wolfEatFood)
-#= Wolf Containment =# 
-wolfContained = True    # true if wolf is currently contained in the pen
+from trial_parameters import *
 
-#=== Sheep ===#
-sheepProb = .4          # likelihood tile inits to sheep
-sheepMinInitAge = 0     # range of age for initial population
-sheepMaxInitAge = 4
-#= Sheep Birth Rate =#
-sheepMatureAge = 1      # age necessary to have a child
-sheepMinChildAge = 0    # range of age between which child leaves, initial is 0
-sheepMaxChildAge = 1
-sheepChildFood = 0      # the food ration necessary to have a child
-#= Sheep Death Rate =#
-sheepMaxFood = 5        # food gained when eating, dies at 0, initial is max
-sheepEatFood = 2        # food at which sheep needs to eat again
-grassMatureAge = 2      # age grass is edible, 0 after eaten, initial is rand between [0, max]
 
 
 moves = [[1,0],[0,1],[-1,0],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]]
@@ -46,7 +14,7 @@ moves = [[1,0],[0,1],[-1,0],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]]
 grass = np.random.randint(grassMatureAge, size=(rows, cols))
 grid = np.empty([rows, cols], dtype=object)
 
-#assert wolfProb + sheepProb <= 1
+assert wolfProb + sheepProb <= 1
 assert sheepMaxFood >= sheepEatFood
 assert wolfMaxFood >= wolfEatFood
 
@@ -84,17 +52,24 @@ class Tile:
 
 
 #----------------------------initialize simulation----------------------#
+rowPenStart = (int)(rows * 2 / 10)
+colPenStart = (int)(cols * 8 / 10)
+
 # for stats
 wolves = 0
+penWolves = 0
 sheep = 0
 grasses = 0
 for j in range(0, rows):
     for k in range(0, cols):
         r = random.random()
-        if (wolves <= 200 and j < rows * 3 / 10 and k > cols * 7 / 10):
+        if (r < wolfProb):
             grid[j,k] = Tile("wolf", random.randint(wolfMinInitAge, wolfMaxInitAge), wolfMaxFood)
             wolves += 1
-        elif(r < sheepProb + wolfProb and (j > rows * 3 / 10 or k < cols * 7 / 10)):
+        elif (penWolves <= minWolvesInPen and j < rowPenStart and k > colPenStart):
+            grid[j,k] = Tile("wolf", random.randint(wolfMinInitAge, wolfMaxInitAge), wolfMaxFood)
+            penWolves += 1
+        elif(r < sheepProb + wolfProb and (j > rowPenStart or k < colPenStart)):
             grid[j,k] = Tile("sheep", random.randint(sheepMinInitAge, sheepMaxInitAge), sheepMaxFood)
             sheep += 1
         else:
@@ -110,17 +85,17 @@ for i in range(0, time, step):
     wolves = 0
     sheep = 0
     grasses = 0
-    wolvesRemoved = 10
+    wolvesRemoved = releasedPerStep
     ####- remove wolf from pen -####
-    for j in range(0, rows * 3 / 10):
-        for k in range (cols * 7 / 10, cols):
+    for j in range(0, rowPenStart):
+        for k in range (colPenStart, cols):
             if (wolvesRemoved > 0):
                 tile = grid[j][k]
                 if (tile.type == "wolf" and wolvesRemoved > 0):
                     wolfRemoved = False
                     for n in range(0, rows):
                         for m in range(0, cols):
-                            if (grid[n][m].type == "empty" and (n > rows * 3 / 10 or m < cols * 7 /10) and not wolfRemoved):
+                            if (grid[n][m].type == "empty" and (n > rowPenStart or m < colPenStart) and not wolfRemoved):
                                 moveTo(j, k, n - j, m - k)
                                 wolvesRemoved = wolvesRemoved - 1;
                                 wolfRemoved = True
@@ -171,7 +146,7 @@ for i in range(0, time, step):
 
                 ##- look for any empty tile with grass -##
                 for location in empty:
-                    if(grass[j+location[0],k+location[1]] >= grassMatureAge and (j + location[0] > rows * 3 / 10 or k + location[1] < cols * 7 / 10)):
+                    if(grass[j+location[0],k+location[1]] >= grassMatureAge and (j + location[0] > rowPenStart or k + location[1] < colPenStart)):
                         ###- grass found, move to that location -###
                         moveTo(j,k,location[0],location[1])
                         tile = grid[j+location[0], k +location[1]]
@@ -182,11 +157,11 @@ for i in range(0, time, step):
                         grass[j+location[0],k+location[1]] = 0
                         break
                 ##- if no grass found, just move randomly -##
-                if(not moved and len(empty)>0 and (j + empty[0][0] > rows * 3 / 10 or k + empty[0][1] < cols * 7 / 10)):
+                if(not moved and len(empty)>0 and (j + empty[0][0] > rowPenStart or k + empty[0][1] < colPenStart)):
                      moveTo(j,k,empty[0][0],empty[0][1])
                      tile = grid[j+empty[0][0], k +empty[0][1]]
             ###- wolf outside pen -###
-            elif(grid[j,k].type == "wolf" and (j > rows * 3 / 10 or k < cols * 7 / 10)):
+            elif(grid[j,k].type == "wolf" and (j > rowPenStart or k < colPenStart)):
                 wolves += 1
                 outputAnimals[i,j,k] = 2
                 ##- handle female specific stuff -##
@@ -200,7 +175,8 @@ for i in range(0, time, step):
                             tile.childAge = 0
                             tile.hasChild = False
                             del empty[0] # this move is no longer empty b/c child moved there
-                        tile.childAge += 1
+                        else:
+                            tile.childAge += 1
 
                     ##- handle sheep gaining sheep from male -##
                     if(tile.age > wolfMatureAge and tile.foodRation >= wolfChildFood and len(maleWolves) > 0 and tile.hasChild == False):
@@ -210,7 +186,7 @@ for i in range(0, time, step):
                 #- look for any empty tile with grass -#
                 if(tile.foodRation < wolfEatFood):
                     for location in moves:
-                        if(j+location[0] < rows and j+location[0] >= 0 and k+location[1] < cols and k+location[1] >= 0 and (j + location[0] > rows * 3 / 10 or k + location[1] < cols * 7 / 10)):
+                        if(j+location[0] < rows and j+location[0] >= 0 and k+location[1] < cols and k+location[1] >= 0 and (j + location[0] > rowPenStart or k + location[1] < colPenStart)):
                             if(grid[j+location[0],k+location[1]].type == "sheep"):
                                 ###- grass found, move to that location -###
                                 moveTo(j,k,location[0],location[1])
@@ -222,12 +198,12 @@ for i in range(0, time, step):
                                 break
 
                 #- if no grass found, just move randomly -#
-                if(not moved and len(empty)>0 and (j + empty[0][0] > rows * 3 / 10 or k + empty[0][1] < cols * 7 / 10)):
+                if(not moved and len(empty)>0 and (j + empty[0][0] > rowPenStart or k + empty[0][1] < colPenStart)):
                      moveTo(j,k,empty[0][0],empty[0][1])
                      tile = grid[j+empty[0][0], k +empty[0][1]]
             #- wolf in pen -#
-            elif(grid[j,k].type == "wolf" and j < rows * 3 / 10 and k > cols * 7 / 10):
-                wolves += 1
+            elif(grid[j,k].type == "wolf" and j < rowPenStart and k > colPenStart):
+                # wolves += 1
                 tile.foodRation = wolfMaxFood
                 outputAnimals[i,j,k] = 2
                 ##- handle female specific stuff -##
@@ -250,7 +226,7 @@ for i in range(0, time, step):
                 #- look for any empty tile with grass -#
                 if(tile.foodRation < wolfEatFood):
                     for location in moves:
-                        if(j+location[0] < rows and j+location[0] >= 0 and k+location[1] < cols and k+location[1] >= 0 and j + location[0] < rows * 3 / 10 and k + location[1] > cols * 7 / 10):
+                        if(j+location[0] < rows and j+location[0] >= 0 and k+location[1] < cols and k+location[1] >= 0 and j + location[0] < rowPenStart and k + location[1] > colPenStart):
                             if(grid[j+location[0],k+location[1]].type == "sheep"):
                                 ###- grass found, move to that location -###
                                 moveTo(j,k,location[0],location[1])
@@ -262,22 +238,24 @@ for i in range(0, time, step):
                                 break
 
                 #- if no grass found, just move randomly -#
-                if(not moved and len(empty)>0 and j + empty[0][0] < rows * 3 / 10 and k + empty[0][1] > cols * 7 / 10):
+                if(not moved and len(empty)>0 and j + empty[0][0] < rowPenStart and k + empty[0][1] > colPenStart):
                      moveTo(j,k,empty[0][0],empty[0][1])
                      tile = grid[j+empty[0][0], k +empty[0][1]]
             ###-handle grass-###
             if (grass[j,k] >= grassMatureAge):
                 grasses += 1
             grass[j,k] = grass[j,k]+1
-            if(not eaten and tile.type != "empty"):
-                tile.foodRation = tile.foodRation-1
-                if(tile.foodRation <= 0):
-                    tile.type = "empty"
-                    tile.hasChild = None
-                    tile.age = None
-                    tile.sex = None
-                    tile.foodRation = None
-                    tile.childAge = None
+            if(tile.type != "empty"):
+                tile.age += 1
+                if(not eaten):
+                    tile.foodRation = tile.foodRation-1
+                    if(tile.foodRation <= 0):
+                        tile.type = "empty"
+                        tile.hasChild = None
+                        tile.age = None
+                        tile.sex = None
+                        tile.foodRation = None
+                        tile.childAge = None
 
     outputGrass.append(grass)
     wolfCount.append(wolves)
@@ -302,15 +280,15 @@ def update(i):
 fig, ax = plt.subplots()
 mat = ax.matshow(outputAnimals[0])
 plt.colorbar(mat)
+ani = animation.FuncAnimation(fig, update, frames=time, interval=aniInterval, blit=True) 
 
 # Use the below line to view the animation rather than save it
-plt.show()
+# plt.show()
 
 # Use the below lines to save the animation rather than view it
-# Writer = animation.writers['ffmpeg']
-# writer = Writer(fps=(int)(1000/aniInterval), metadata=dict(artist='Me'), bitrate=1800)
-# ani = animation.FuncAnimation(fig, update, frames=time, interval=aniInterval, blit=True) 
-# ani.save('try_animation.mp4', writer=writer)
+Writer = animation.writers['ffmpeg']
+writer = Writer(fps=(int)(1000/aniInterval), metadata=dict(artist='Me'), bitrate=1800)
+ani.save('try_animation.mp4', writer=writer)
 
 plt.close()
 plt.clf()

@@ -3,40 +3,10 @@ import random
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
-#----------------------------set global variables-----------------------#
-rows = 80
-cols = 80
-time = 50               # Amount of time to run the simulation for
-step = 1
 
-aniInterval = 50        # milliseconds between each animation frame
 
-#=== Wolf ===#
-wolfProb = .05          # likelihood tile inits to wolf
-wolfMinInitAge = 4      # range of age for initial population
-wolfMaxInitAge = 6
-#= Wolf Birth Rate =#
-wolfMatureAge = 0       # age necessary to have a child
-wolfMinChildAge = 0     # range of age between which child leaves, initial is 0
-wolfMaxChildAge = 1
-wolfChildFood = 0       # the food ration necessary to have a child
-#= Wolf Death Rate =#
-wolfMaxFood = 5         # food gained when eating, dies at 0, initial is max
-wolfEatFood = 2         # food at which wolf needs to eat again (eat if foodRation <= wolfEatFood)
+from parameters_control import *
 
-#=== Sheep ===#
-sheepProb = .2          # likelihood tile inits to sheep
-sheepMinInitAge = 0     # range of age for initial population
-sheepMaxInitAge = 4
-#= Sheep Birth Rate =#
-sheepMatureAge = 1      # age necessary to have a child
-sheepMinChildAge = 0    # range of age between which child leaves, initial is 0
-sheepMaxChildAge = 1
-sheepChildFood = 0      # the food ration necessary to have a child
-#= Sheep Death Rate =#
-sheepMaxFood = 5        # food gained when eating, dies at 0, initial is max
-sheepEatFood = 2        # food at which sheep needs to eat again
-grassMatureAge = 2      # age grass is edible, 0 after eaten, initial is rand between [0, max]
 
 
 moves = [[1,0],[0,1],[-1,0],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]]
@@ -146,7 +116,8 @@ for i in range(0, time, step):
                             tile.childAge = 0
                             tile.hasChild = False
                             del empty[0] # this move is no longer empty b/c child moved there
-                        tile.childAge += 1
+                        else:
+                            tile.childAge += 1
 
                     #- handle sheep gaining sheep from male -#
                     if(tile.age > sheepMatureAge and tile.foodRation >= sheepChildFood and len(malesheep) > 0 and tile.hasChild == False):
@@ -184,7 +155,8 @@ for i in range(0, time, step):
                             tile.childAge = 0
                             tile.hasChild = False
                             del empty[0] # this move is no longer empty b/c child moved there
-                        tile.childAge += 1
+                        else:
+                            tile.childAge += 1
 
                     ##- handle sheep gaining sheep from male -##
                     if(tile.age > wolfMatureAge and tile.foodRation >= wolfChildFood and len(maleWolves) > 0 and tile.hasChild == False):
@@ -214,15 +186,17 @@ for i in range(0, time, step):
             if (grass[j,k] >= grassMatureAge):
                 grasses += 1
             grass[j,k] = grass[j,k]+1
-            if(not eaten and tile.type != "empty"):
-                tile.foodRation = tile.foodRation-1
-                if(tile.foodRation <= 0):
-                    tile.type = "empty"
-                    tile.hasChild = None
-                    tile.age = None
-                    tile.sex = None
-                    tile.foodRation = None
-                    tile.childAge = None
+            if(tile.type != "empty"):
+                tile.age += 1
+                if(not eaten):
+                    tile.foodRation = tile.foodRation-1
+                    if(tile.foodRation <= 0):
+                        tile.type = "empty"
+                        tile.hasChild = None
+                        tile.age = None
+                        tile.sex = None
+                        tile.foodRation = None
+                        tile.childAge = None
 
     outputGrass.append(grass)
     wolfCount.append(wolves)
@@ -246,15 +220,15 @@ def update(i):
 fig, ax = plt.subplots()
 mat = ax.matshow(outputAnimals[0])
 plt.colorbar(mat)
+ani = animation.FuncAnimation(fig, update, frames=time, interval=aniInterval, blit=True) 
 
 # Use the below line to view the animation rather than save it
-plt.show()
+# plt.show()
 
 # Use the below lines to save the animation rather than view it
-# Writer = animation.writers['ffmpeg']
-# writer = Writer(fps=(int)(1000/aniInterval), metadata=dict(artist='Me'), bitrate=1800)
-# ani = animation.FuncAnimation(fig, update, frames=time, interval=aniInterval, blit=True) 
-# ani.save('try_animation.mp4', writer=writer)
+Writer = animation.writers['ffmpeg']
+writer = Writer(fps=(int)(1000/aniInterval), metadata=dict(artist='Me'), bitrate=1800)
+ani.save('try_animation.mp4', writer=writer)
 
 plt.close()
 plt.clf()
