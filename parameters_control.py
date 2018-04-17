@@ -1,7 +1,7 @@
 #----------------------------set global variables-----------------------#
 rows = 80
 cols = 80
-time = 800               # Amount of time to run the simulation for
+time = 1000               # Amount of time to run the simulation for
 step = 1
 
 aniInterval = 30        # milliseconds between each animation frame

@@ -5,7 +5,7 @@ import matplotlib.animation as animation
 
 
 
-from trial_parameters import *
+from parameters_trial import *
 
 
 
@@ -283,12 +283,12 @@ plt.colorbar(mat)
 ani = animation.FuncAnimation(fig, update, frames=time, interval=aniInterval, blit=True) 
 
 # Use the below line to view the animation rather than save it
-# plt.show()
+plt.show()
 
 # Use the below lines to save the animation rather than view it
-Writer = animation.writers['ffmpeg']
-writer = Writer(fps=(int)(1000/aniInterval), metadata=dict(artist='Me'), bitrate=1800)
-ani.save('try_animation.mp4', writer=writer)
+# Writer = animation.writers['ffmpeg']
+# writer = Writer(fps=(int)(1000/aniInterval), metadata=dict(artist='Me'), bitrate=1800)
+# ani.save('try_animation.mp4', writer=writer)
 
 plt.close()
 plt.clf()

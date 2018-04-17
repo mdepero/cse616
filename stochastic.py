@@ -5,7 +5,7 @@ import matplotlib.animation as animation
 
 
 
-from parameters_control import *
+from parameters_trial import *
 
 
 
@@ -237,4 +237,11 @@ for t in range(trials):
     plt.plot(range(0, time, step), wolfCount[t], color='red')
     plt.plot(range(0, time, step), sheepCount[t], color='green')
 # plt.plot(range(0, time, step), grassCount)
+wolvesAvg = [sum([wolfCount[t][i] for t in range(trials)])/trials for i in range((int)(time/step))]
+sheepAvg = [sum([sheepCount[t][i] for t in range(trials)])/trials for i in range((int)(time/step))]
+
+plt.plot(range(0, time, step), wolvesAvg, color='#ffaaaa',linewidth=3.0)
+plt.plot(range(0, time, step), sheepAvg, color='#aaffaa',linewidth=3.0)
+
+
 plt.show()

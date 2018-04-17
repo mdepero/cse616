@@ -9,7 +9,7 @@ from parameters_trial import *
 
 
 
-trials = 15
+trials = 20
 
 
 moves = [[1,0],[0,1],[-1,0],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]]
@@ -295,5 +295,12 @@ for t in range(trials):
 for t in range(trials):
     plt.plot(range(0, time, step), wolfCount[t], color='red')
     plt.plot(range(0, time, step), sheepCount[t], color='green')
+
+wolvesAvg = [sum([wolfCount[t][i] for t in range(trials)])/trials for i in range((int)(time/step))]
+sheepAvg = [sum([sheepCount[t][i] for t in range(trials)])/trials for i in range((int)(time/step))]
+
+plt.plot(range(0, time, step), wolvesAvg, color='#ffaaaa',linewidth=3.0)
+plt.plot(range(0, time, step), sheepAvg, color='#aaffaa',linewidth=3.0)
+
 # plt.plot(range(0, time, step), grassCount)
 plt.show()

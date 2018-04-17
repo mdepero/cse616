@@ -5,7 +5,7 @@ import matplotlib.animation as animation
 
 
 
-from parameters_control import *
+from parameters_trial import *
 
 
 

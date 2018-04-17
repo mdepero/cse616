@@ -1,13 +1,13 @@
 #----------------------------set global variables-----------------------#
 rows = 80
 cols = 80
-time = 800               # Amount of time to run the simulation for
+time = 1000               # Amount of time to run the simulation for
 step = 1
 
 aniInterval = 30        # milliseconds between each animation frame
 
 #=== Wolf ===#
-wolfProb = .02          # likelihood tile inits to wolf
+wolfProb = .00          # likelihood tile inits to wolf
 wolfMinInitAge = 4      # range of age for initial population
 wolfMaxInitAge = 6
 #= Wolf Birth Rate =#
@@ -20,7 +20,7 @@ wolfMaxFood = 5         # food gained when eating, dies at 0, initial is max
 wolfEatFood = 2         # food at which wolf needs to eat again (eat if foodRation <= wolfEatFood)
 
 #=== Sheep ===#
-sheepProb = .10          # likelihood tile inits to sheep
+sheepProb = .50          # likelihood tile inits to sheep
 sheepMinInitAge = 0     # range of age for initial population
 sheepMaxInitAge = 4
 #= Sheep Birth Rate =#
